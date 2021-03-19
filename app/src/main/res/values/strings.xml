@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">ElectroWorks</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <!--    <string name="login">Login</string>-->
+    <string name="loginhere">Already User?<u>Login</u></string>
+    <string name="signup">SignUp</string>
+    <string name="fullname">fullname</string>
+    <string name="email">email</string>
+    <string name="signuphere">New Here? <u>SignUp</u></string>
+    <string name="camera">Camera</string>
+    <string name="gallary">Gallary</string>
+    <string name="upload">Upload Data</string>
+    <string name="uploadData">Upload Work Done</string>
+</resources>
