@@ -1,15 +1,17 @@
-    package com.aman.electroworks;
+package com.aman.electroworks;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,144 +37,150 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UploadData extends AppCompatActivity {
-
-    EditText editTextDescription;
-    ImageView imageView;
-    Button btnOpenGallary,btnOpenCamera,btnUploadData;
-    Bitmap bitmap;
-    String encodedImage;
+public class UploadData extends AppCompatActivity implements View.OnClickListener {
+    private Button uploadBtn,chooseBtn,cameraBtn;
+    private EditText name;
+    private ImageView imageView;
+    private final int IMG_REQUEST =1;
+    private final int IMG_REQUEST2 =2;
+    private Bitmap bitmap;
+    private String URL = "http://192.168.0.107/projectData/uploadinfo.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_data);
+        uploadBtn=(Button)findViewById(R.id.uploadData);
+        chooseBtn=(Button)findViewById(R.id.openGallary);
+        name=(EditText)findViewById(R.id.editDescription);
+        imageView=(ImageView)findViewById(R.id.imgView);
+        cameraBtn=(Button)findViewById(R.id.openCamera);
 
-        // Getting values from fields
-        editTextDescription = findViewById(R.id.editDescription);
-        imageView = findViewById(R.id.imgView);
-        btnOpenCamera = findViewById(R.id.openCamera);
-        btnOpenGallary = findViewById(R.id.openGallary);
-        btnUploadData = findViewById(R.id.uploadData);
+        chooseBtn.setOnClickListener(this);
+        uploadBtn.setOnClickListener(this);
+        cameraBtn.setOnClickListener(this);
 
-        //Open Gallary Activity
-        btnOpenGallary.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Dexter.withContext(UploadData.this)//Dexter Library to ask permission to the user
-                        .withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                        .withListener(new PermissionListener() {
-                            @Override
-                            public void onPermissionGranted(PermissionGrantedResponse permissionGrantedResponse) {
-                                Intent intent = new Intent(Intent.ACTION_PICK);//For image pick activity
-                                intent.setType("image/*");
-                                startActivityForResult(Intent.createChooser(intent,"Select Image"),1);
-                            }
 
-                            @Override
-                            public void onPermissionDenied(PermissionDeniedResponse permissionDeniedResponse) {
 
-                            }
-
-                            @Override
-                            public void onPermissionRationaleShouldBeShown(PermissionRequest permissionRequest, PermissionToken permissionToken) {
-                                permissionToken.continuePermissionRequest();
-                            }
-                        }).check();
-            }
-        });
-
-        //Open Camera Activity
-        btnOpenCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent,2);
-            }
-        });
-
-        //Upload Button
-        btnUploadData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                String description = editTextDescription.getText().toString().trim();
-
-                StringRequest request = new StringRequest(Request.Method.POST, "http://192.168.0.107/projectdata/uploadinfo.php",
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-
-                                try{
-                                    JSONObject jsonObject = new JSONObject(response);
-                                    String response1 = jsonObject.getString("response");
-                                    Toast.makeText(UploadData.this, response, Toast.LENGTH_SHORT).show();
-                            }catch (JSONException e){
-                                    e.printStackTrace();
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(UploadData.this,error.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                }){
-                    @Override
-                    protected Map<String, String> getParams() throws AuthFailureError {
-                        Map<String,String> params = new HashMap<>();
-                        params.put("description",description);
-                        params.put("image",encodedImage);
-
-                        return params;
-                        // Getting Encoded Image and description as a parameter
-                    }
-                };
-
-                RequestQueue requestQueue = Volley.newRequestQueue(UploadData.this); //Volly Library use for establishing HTTP connection.
-                requestQueue.add(request);
-            }
-        });
 
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.openGallary:
+                selectImg();
+                break;
+            case R.id.uploadData:
+                uploadImage();
+                break;
+            case R.id.openCamera:
+                openCamera();
+                break;
+
+        }
+    }
+    private void selectImg(){
+        Intent intent=new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent,IMG_REQUEST);
+    }
+
+    private void openCamera(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent,IMG_REQUEST2);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        // IF image comes from gallary
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null)
-        {
-            Uri filePath = data.getData();
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==IMG_REQUEST && resultCode==RESULT_OK && data!=null){
+            Uri path = data.getData();
             try {
-                InputStream inputStream = getContentResolver().openInputStream(filePath);
-                bitmap = BitmapFactory.decodeStream(inputStream);
+                bitmap=MediaStore.Images.Media.getBitmap(getContentResolver(),path);
                 imageView.setImageBitmap(bitmap);
-                imageStore(bitmap);
-
-            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else if(requestCode == 2 && resultCode == RESULT_OK && data != null){ //If image comes form camera
+        }else if(requestCode == IMG_REQUEST2 && resultCode == RESULT_OK && data != null){ //If image comes form camera
             bitmap = (Bitmap)data.getExtras().get("data");
             imageView.setImageBitmap(bitmap);
-            imageStore(bitmap);
         }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
-    //Converting image into form of bytes
-    private void imageStore(Bitmap bitmap) {
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100,stream);
+    private void uploadImage(){
+        StringRequest request=new StringRequest(Request.Method.POST, URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String Response = jsonObject.getString("response");
+                            Toast.makeText(UploadData.this, Response, Toast.LENGTH_SHORT).show();
+                            imageView.setImageResource(0);
+                            name.setText("");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
 
-        byte[] imageByte = stream.toByteArray();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
 
-        encodedImage = android.util.Base64.encodeToString(imageByte, android.util.Base64.DEFAULT);
+            }
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String,String> params = new HashMap<>();
+                params.put("name",name.getText().toString().trim());
+                params.put("image",imageToString(bitmap));
+                return params;
+            }
+        };
+
+        MySingleTone.getInstance(UploadData.this).addToRequestQue(request);
+
+    }
+
+    private String imageToString(Bitmap bitmap){
+        ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG,100,byteArrayOutputStream);
+        byte[] imgBytes=byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(imgBytes, Base64.DEFAULT);
+    }
+}
+
+class MySingleTone{
+    private static MySingleTone mInstance;
+    private RequestQueue requestQueue;
+    private static Context mContext;
+
+    private MySingleTone(Context context){
+        mContext=context;
+        requestQueue= getRequestQue();
+    }
+
+    private RequestQueue getRequestQue() {
+        if(requestQueue==null){
+            requestQueue =  Volley.newRequestQueue(mContext.getApplicationContext());
+        }
+        return requestQueue;
+    }
+
+    public static synchronized MySingleTone getInstance(Context context){
+        if (mInstance==null){
+            mInstance= new MySingleTone(context);
+        }
+        return mInstance;
+    }
+    public<T> void addToRequestQue(Request<T> request){
+        getRequestQue().add(request);
     }
 }
