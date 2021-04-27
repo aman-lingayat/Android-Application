@@ -30,6 +30,9 @@ import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -57,7 +60,7 @@ public class UploadData extends AppCompatActivity {
         btnOpenGallary = findViewById(R.id.openGallary);
         btnUploadData = findViewById(R.id.uploadData);
 
-        //Open Gallry Activity
+        //Open Gallary Activity
         btnOpenGallary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,11 +104,18 @@ public class UploadData extends AppCompatActivity {
 
                 String description = editTextDescription.getText().toString().trim();
 
-                StringRequest request = new StringRequest(Request.Method.POST, "http://192.168.0.108/projectdata/uploadData.php",
+                StringRequest request = new StringRequest(Request.Method.POST, "http://192.168.0.107/projectdata/uploadinfo.php",
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-                                Toast.makeText(UploadData.this, response, Toast.LENGTH_SHORT).show();
+
+                                try{
+                                    JSONObject jsonObject = new JSONObject(response);
+                                    String response1 = jsonObject.getString("response");
+                                    Toast.makeText(UploadData.this, response, Toast.LENGTH_SHORT).show();
+                            }catch (JSONException e){
+                                    e.printStackTrace();
+                                }
                             }
                         }, new Response.ErrorListener() {
                     @Override

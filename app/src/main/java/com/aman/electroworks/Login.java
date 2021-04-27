@@ -63,7 +63,7 @@ public class Login extends AppCompatActivity {
                             String[] data = new String[2];
                             data[0] = username;
                             data[1] = password;
-                            PutData putData = new PutData("http://192.168.0.108/projectData/login.php", "POST", field, data);//Location Of php file
+                            PutData putData = new PutData("http://192.168.0.107/projectData/login.php", "POST", field, data);//Location Of php file
 
                             //Checking and Showing Result
                             if (putData.startPut()) {
