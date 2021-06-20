@@ -12,9 +12,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aman.electroworks.constants.SessionManager;
 import com.vishnusivadas.advanced_httpurlconnection.PutData;
 
 public class Login extends AppCompatActivity {
+
+    SessionManager sessionManager;
 
     EditText editTextUsername, editTextPassword;
     Button buttonLogin;
@@ -25,6 +28,8 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        //initializing session
+        sessionManager=new SessionManager(getApplicationContext());
         // Getting values from fields
         editTextUsername = findViewById(R.id.usernameLogin);
         editTextPassword = findViewById(R.id.passwordLogin);
@@ -63,7 +68,7 @@ public class Login extends AppCompatActivity {
                             String[] data = new String[2];
                             data[0] = username;
                             data[1] = password;
-                            PutData putData = new PutData("http://192.168.0.107/projectData/login.php", "POST", field, data);//Location Of php file
+                            PutData putData = new PutData("http://192.168.0.108/projectData/mobile/login.php", "POST", field, data);//Location Of php file
 
                             //Checking and Showing Result
                             if (putData.startPut()) {
@@ -71,6 +76,8 @@ public class Login extends AppCompatActivity {
                                     progressBar.setVisibility(View.GONE);
                                     String result = putData.getResult();
                                     if (result.equals("Login Success")) {
+
+                                        sessionManager.createUser();
                                         Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(getApplicationContext(), UploadData.class);
                                         startActivity(intent);

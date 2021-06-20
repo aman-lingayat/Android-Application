@@ -75,7 +75,7 @@ public class SignUp extends AppCompatActivity {
                             data[2] = username;
                             data[3] = password;
 
-                            PutData putData = new PutData("http://192.168.0.107/projectData/signup.php", "POST", field, data);//Location Of php file
+                            PutData putData = new PutData("http://192.168.0.108/projectData/mobile/signup.php", "POST", field, data);//Location Of php file
 
                             //Checking and Showing Result
                             if (putData.startPut()) {

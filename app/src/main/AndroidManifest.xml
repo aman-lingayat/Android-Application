@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.aman.electroworks">
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-feature android:name="android.hardware.camera"
-        android:required="true"/>
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -14,9 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ElectroWorks"
         android:usesCleartextTraffic="true">
-
-        <activity
-            android:name=".Login"
+        <activity android:name=".SplashScreen"
             android:theme="@style/Theme.Design.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,9 +26,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".Login"
+            android:theme="@style/Theme.Design.Light.NoActionBar">
+        </activity>
+        <activity
             android:name=".SignUp"
             android:theme="@style/Theme.Design.Light.NoActionBar" />
-        <activity android:name=".UploadData"/>
+        <activity android:name=".UploadData" />
         <activity android:name=".MainActivity" />
     </application>
 

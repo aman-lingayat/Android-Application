@@ -1,13 +1,11 @@
-package com.aman.electroworks;
+    package com.aman.electroworks;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -18,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.aman.electroworks.constants.SessionManager;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,46 +24,44 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.PermissionListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UploadData extends AppCompatActivity implements View.OnClickListener {
-    private Button uploadBtn,chooseBtn,cameraBtn;
+
+    SessionManager sessionManager;
+
+    private Button uploadBtn,chooseBtn, logOutBtn, openCameraBtn;
     private EditText name;
     private ImageView imageView;
     private final int IMG_REQUEST =1;
     private final int IMG_REQUEST2 =2;
     private Bitmap bitmap;
-    private String URL = "http://192.168.0.107/projectData/uploadinfo.php";
+    private String URL = "http://192.168.0.108/projectData/mobile/uploadinfo.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_data);
+        //
+        sessionManager=new SessionManager(UploadData.this);
         uploadBtn=(Button)findViewById(R.id.uploadData);
         chooseBtn=(Button)findViewById(R.id.openGallary);
         name=(EditText)findViewById(R.id.editDescription);
         imageView=(ImageView)findViewById(R.id.imgView);
-        cameraBtn=(Button)findViewById(R.id.openCamera);
+        logOutBtn =(Button)findViewById(R.id.logOut);
+        openCameraBtn = (Button)findViewById(R.id.openCamera);
 
         chooseBtn.setOnClickListener(this);
         uploadBtn.setOnClickListener(this);
-        cameraBtn.setOnClickListener(this);
-
+        logOutBtn.setOnClickListener(this);
+        openCameraBtn.setOnClickListener(this);
 
 
 
@@ -74,27 +71,37 @@ public class UploadData extends AppCompatActivity implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.openGallary:
-                selectImg();
+                    selectImg();
                 break;
             case R.id.uploadData:
-                uploadImage();
+                    uploadImage();
+                break;
+            case R.id.logOut:
+                    logOutUser();
                 break;
             case R.id.openCamera:
                 openCamera();
                 break;
-
         }
     }
+
+    private void openCamera() {
+        Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            startActivityForResult(intent,IMG_REQUEST2);
+    }
+
+    private void logOutUser() {
+        sessionManager.removeUser();
+        Intent i=new Intent(UploadData.this,Login.class);
+        startActivity(i);
+        finish();
+    }
+
     private void selectImg(){
         Intent intent=new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(intent,IMG_REQUEST);
-    }
-
-    private void openCamera(){
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent,IMG_REQUEST2);
     }
 
     @Override
@@ -108,8 +115,8 @@ public class UploadData extends AppCompatActivity implements View.OnClickListene
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }else if(requestCode == IMG_REQUEST2 && resultCode == RESULT_OK && data != null){ //If image comes form camera
-            bitmap = (Bitmap)data.getExtras().get("data");
+        }else if(requestCode==IMG_REQUEST2 && resultCode==RESULT_OK&&data!=null){
+            bitmap=(Bitmap)data.getExtras().get("data");
             imageView.setImageBitmap(bitmap);
         }
     }
